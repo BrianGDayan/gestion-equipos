@@ -1,0 +1,31 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Equipo {
+  // Ahora la clave primaria es el código (String)
+  codigo           String  @id @db.VarChar(10) 
+  nombre_equipo    String  @db.VarChar(100)
+  ubicacion_actual String? @db.VarChar(50)
+
+  historial        TrazabilidadUbicacion[]
+}
+
+model Tipo {
+  codigo           String  @id @db.VarChar(10)
+  referencia       String  @unique @db.VarChar(50)
+}
+
+model TrazabilidadUbicacion {
+  id               Int      @id @default(autoincrement())
+  ubicacion        String   @db.VarChar(255)
+  fecha_registro   DateTime @default(now()) @db.Timestamptz(6)
+  equipo_codigo    String
+  equipo           Equipo   @relation(fields: [equipo_codigo], references: [codigo], onDelete: Cascade)
+
+  @@index([equipo_codigo])
+}
