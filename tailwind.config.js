@@ -1,13 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/app/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}"
+  "./src/app/**/*.{js,ts,jsx,tsx}",
+  "./src/components/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
+        sans: ['var(--font-inter)', 'sans-serif'], 
       },
       colors: {
         primary: '#1B5FA3',
@@ -20,7 +20,7 @@ module.exports = {
         'gray-border': '#C5CBD2',
         'gray-text': '#333333',
       }
-    }
+    },
   },
   plugins: [],
 }

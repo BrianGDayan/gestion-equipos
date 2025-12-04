@@ -11,7 +11,7 @@ type Params = {
 export async function PATCH(request: Request, { params }: Params) {
   const { codigo } = params
   const data = await request.json()
-  const nuevaUbicacion = data.ubicacion_actual // El cuerpo solo debe tener { "ubicacion_actual": "Nueva Ubicación" }
+  const nuevaUbicacion = data.ubicacion_actual
 
   if (!nuevaUbicacion) {
     return NextResponse.json({ message: "La nueva ubicación es requerida." }, { status: 400 })
