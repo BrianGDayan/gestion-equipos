@@ -1,29 +1,53 @@
-export const dynamic = "force-dynamic";
+"use server";
 
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
-export async function GET(
-  request: Request,
+export async function PATCH(
+  request: NextRequest,
   { params }: { params: { codigo: string } }
 ) {
-  try {
-    const historial = await prisma.trazabilidadUbicacion.findMany({
-      where: { equipo_codigo: params.codigo },
-      orderBy: { fecha_registro: "desc" },
-    });
+  const { codigo } = params;
 
-    // Convertir fechas a string si fuera necesario (evita errores de serialización)
-    const safe = historial.map((h) => ({
-      ...h,
-      fecha_registro: h.fecha_registro.toISOString(),
-    }));
+  const data = await request.json();
+  const nuevaUbicacion = data.ubicacion_actual;
 
-    return NextResponse.json(safe);
-  } catch (error) {
-    console.error("Error al obtener historial:", error);
+  if (!nuevaUbicacion) {
     return NextResponse.json(
-      { message: "Error al obtener historial" },
+      { message: "La nueva ubicación es requerida." },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const [equipoActualizado] = await prisma.$transaction([
+      prisma.equipo.update({
+        where: { codigo },
+        data: { ubicacion_actual: nuevaUbicacion },
+      }),
+      prisma.trazabilidadUbicacion.create({
+        data: {
+          equipo_codigo: codigo,
+          ubicacion: nuevaUbicacion,
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      message: "Ubicación actualizada y registrada con éxito.",
+      equipo: equipoActualizado,
+    });
+  } catch (error: any) {
+    if (error.code === "P2025") {
+      return NextResponse.json(
+        { message: `Equipo con código ${codigo} no encontrado.` },
+        { status: 404 }
+      );
+    }
+
+    console.error("Error al modificar ubicación:", error);
+    return NextResponse.json(
+      { message: "Error interno al modificar la ubicación" },
       { status: 500 }
     );
   }
