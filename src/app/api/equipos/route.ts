@@ -22,18 +22,17 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-    const { codigo, nombre_equipo, ubicacion_actual } = data
+    const { codigo, nombre_equipo, ubicacion_actual, tipo_codigo } = data
 
-    // 1. Crear el nuevo equipo
     const nuevoEquipo = await prisma.equipo.create({
       data: {
         codigo: codigo,
         nombre_equipo: nombre_equipo,
         ubicacion_actual: ubicacion_actual,
+        tipo_codigo: tipo_codigo, // <-- Campo requerido agregado
       },
     })
 
-    // 2. Registrar la ubicación inicial en el historial
     await prisma.trazabilidadUbicacion.create({
         data: {
             equipo_codigo: nuevoEquipo.codigo,
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
         },
     });
 
-    return NextResponse.json(nuevoEquipo, { status: 201 }) // 201 Created
+    return NextResponse.json(nuevoEquipo, { status: 201 })
   } catch (error) {
     console.error('Error al crear equipo:', error)
     return NextResponse.json({ message: "Error al crear equipo" }, { status: 500 })

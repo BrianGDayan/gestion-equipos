@@ -6,12 +6,15 @@ interface Equipo {
   codigo: string;
   nombre_equipo: string;
   ubicacion_actual: string | null;
+  // tipo_codigo es requerido por la DB, se añade aquí para el GET
+  tipo_codigo: string; 
 }
 
 interface EstadoEquipoNuevo {
   codigo: string;
   nombre_equipo: string;
   ubicacion_actual: string;
+  tipo_codigo: string; 
 }
 
 export default function TablaEquipos() {
@@ -23,6 +26,7 @@ export default function TablaEquipos() {
     codigo: '',
     nombre_equipo: '',
     ubicacion_actual: '',
+    tipo_codigo: '',
   });
 
   const [codigoEnEdicion, setCodigoEnEdicion] = useState<string | null>(null);
@@ -60,7 +64,7 @@ export default function TablaEquipos() {
       
       const equipoCreado = await res.json();
       setEquipos([...equipos, equipoCreado]); 
-      setEquipoNuevo({ codigo: '', nombre_equipo: '', ubicacion_actual: '' }); 
+      setEquipoNuevo({ codigo: '', nombre_equipo: '', ubicacion_actual: '', tipo_codigo: '' }); 
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -128,10 +132,18 @@ export default function TablaEquipos() {
 
             <tr className="bg-gray-50 border-b-2 border-gray-200">
                <td className="p-2 border-r">
+                 {/* Input dividido: Usamos un small input para el Tipo Código */}
+                 <input 
+                   type="text" 
+                   placeholder="T-Cód (G1)"
+                   className="w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:border-primary mr-1 text-xs"
+                   value={equipoNuevo.tipo_codigo}
+                   onChange={(e) => setEquipoNuevo({...equipoNuevo, tipo_codigo: e.target.value})}
+                 />
                  <input 
                    type="text" 
                    placeholder="Nuevo Cód."
-                   className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-primary"
+                   className="w-2/3 p-2 border border-gray-300 rounded focus:outline-none focus:border-primary"
                    value={equipoNuevo.codigo}
                    onChange={(e) => setEquipoNuevo({...equipoNuevo, codigo: e.target.value})}
                  />
@@ -157,7 +169,7 @@ export default function TablaEquipos() {
                <td className="p-2 text-center">
                  <button 
                    onClick={crearEquipo}
-                   disabled={!equipoNuevo.codigo || !equipoNuevo.nombre_equipo || isSaving}
+                   disabled={!equipoNuevo.codigo || !equipoNuevo.nombre_equipo || !equipoNuevo.tipo_codigo || isSaving}
                    className="bg-secondary hover:bg-secondary-dark text-white font-bold py-1 px-4 rounded text-xs shadow disabled:opacity-50 transition-colors"
                  >
                    {isSaving ? '...' : 'AGREGAR'}
@@ -170,7 +182,9 @@ export default function TablaEquipos() {
 
               return (
                 <tr key={eq.codigo} className="border-b hover:bg-gray-50 transition-colors duration-150">
-                  <td className="py-3 px-4 border-r font-medium text-gray-900">{eq.codigo}</td>
+                  <td className="py-3 px-4 border-r font-medium text-gray-900">
+                    {eq.tipo_codigo} - {eq.codigo}
+                  </td>
                   <td className="py-3 px-4 border-r">{eq.nombre_equipo}</td>
                   
                   <td className={`py-3 px-4 border-r ${estaEditando ? 'bg-yellow-50' : ''}`}>
