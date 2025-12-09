@@ -1,13 +1,13 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { codigo: string } }
+  // 1. Tipamos 'params' como Promise, forzando la compatibilidad con el build worker
+  { params }: { params: Promise<{ codigo: string }> }
 ) {
-  const { codigo } = params;
+  // 2. Usamos await para resolver la Promise y obtener el objeto { codigo }
+  const { codigo } = await params; 
 
   const data = await request.json();
   const nuevaUbicacion = data.ubicacion_actual;
@@ -44,8 +44,6 @@ export async function PATCH(
         { status: 404 }
       );
     }
-
-    console.error("Error al modificar ubicación:", error);
     return NextResponse.json(
       { message: "Error interno al modificar la ubicación" },
       { status: 500 }
