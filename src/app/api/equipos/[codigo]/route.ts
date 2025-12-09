@@ -1,53 +1,29 @@
-"use server";
+export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ codigo: string }> }
+export async function GET(
+  request: Request,
+  { params }: { params: { codigo: string } }
 ) {
-  const { codigo } = await params;
-
-  const data = await request.json();
-  const nuevaUbicacion = data.ubicacion_actual;
-
-  if (!nuevaUbicacion) {
-    return NextResponse.json(
-      { message: "La nueva ubicación es requerida." },
-      { status: 400 }
-    );
-  }
-
   try {
-    const [equipoActualizado] = await prisma.$transaction([
-      prisma.equipo.update({
-        where: { codigo },
-        data: { ubicacion_actual: nuevaUbicacion },
-      }),
-      prisma.trazabilidadUbicacion.create({
-        data: {
-          equipo_codigo: codigo,
-          ubicacion: nuevaUbicacion,
-        },
-      }),
-    ]);
-
-    return NextResponse.json({
-      message: "Ubicación actualizada y registrada con éxito.",
-      equipo: equipoActualizado,
+    const historial = await prisma.trazabilidadUbicacion.findMany({
+      where: { equipo_codigo: params.codigo },
+      orderBy: { fecha_registro: "desc" },
     });
-  } catch (error: any) {
-    if (error.code === "P2025") {
-      return NextResponse.json(
-        { message: `Equipo con código ${codigo} no encontrado.` },
-        { status: 404 }
-      );
-    }
 
-    console.error("Error al modificar ubicación:", error);
+    // Convertir fechas a string si fuera necesario (evita errores de serialización)
+    const safe = historial.map((h) => ({
+      ...h,
+      fecha_registro: h.fecha_registro.toISOString(),
+    }));
+
+    return NextResponse.json(safe);
+  } catch (error) {
+    console.error("Error al obtener historial:", error);
     return NextResponse.json(
-      { message: "Error interno al modificar la ubicación" },
+      { message: "Error al obtener historial" },
       { status: 500 }
     );
   }
