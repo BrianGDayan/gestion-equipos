@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 export async function PATCH(
-  request: Request,
-  { params }: { params: { codigo: string } }
+  request: NextRequest,
+  context: { params: { codigo: string } }
 ) {
-  const { codigo } = params;
+  const { codigo } = context.params;
   const data = await request.json();
   const nuevaUbicacion = data.ubicacion_actual;
 
