@@ -5,14 +5,18 @@ import { NextResponse, NextRequest } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { codigo: string } }
+  { params }: { params: Promise<{ codigo: string }> }
 ) {
-  const { codigo } = context.params;
+  const { codigo } = await params;
+
   const data = await request.json();
   const nuevaUbicacion = data.ubicacion_actual;
 
   if (!nuevaUbicacion) {
-    return NextResponse.json({ message: "La nueva ubicación es requerida." }, { status: 400 });
+    return NextResponse.json(
+      { message: "La nueva ubicación es requerida." },
+      { status: 400 }
+    );
   }
 
   try {
@@ -42,6 +46,9 @@ export async function PATCH(
     }
 
     console.error("Error al modificar ubicación:", error);
-    return NextResponse.json({ message: "Error interno al modificar la ubicación" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Error interno al modificar la ubicación" },
+      { status: 500 }
+    );
   }
 }
