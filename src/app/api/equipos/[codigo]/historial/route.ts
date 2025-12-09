@@ -8,7 +8,7 @@ export async function GET(
   try {
     const historial = await prisma.trazabilidadUbicacion.findMany({
       where: { equipo_codigo: params.codigo },
-      orderBy: { fecha_registro: "desc" },
+      orderBy: { fecha_registro: "desc" }
     });
 
     return NextResponse.json(historial);

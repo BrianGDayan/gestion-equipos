@@ -1,14 +1,11 @@
-import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-interface ContextoRuta {
-  params: {
-    codigo: string
-  }
-}
-
-export async function PATCH(request: Request, context: { params: Promise<{ codigo: string }> }) {
-  const { codigo } = await context.params; 
+export async function PATCH(
+  request: Request,
+  { params }: { params: { codigo: string } }
+) {
+  const { codigo } = params;
   const data = await request.json();
   const nuevaUbicacion = data.ubicacion_actual;
 
@@ -34,11 +31,14 @@ export async function PATCH(request: Request, context: { params: Promise<{ codig
       message: "Ubicación actualizada y registrada con éxito.",
       equipo: equipoActualizado,
     });
-
   } catch (error: any) {
-    if (error.code === 'P2025') {
-      return NextResponse.json({ message: `Equipo con código ${codigo} no encontrado.` }, { status: 404 });
+    if (error.code === "P2025") {
+      return NextResponse.json(
+        { message: `Equipo con código ${codigo} no encontrado.` },
+        { status: 404 }
+      );
     }
+
     console.error("Error al modificar ubicación:", error);
     return NextResponse.json({ message: "Error interno al modificar la ubicación" }, { status: 500 });
   }
