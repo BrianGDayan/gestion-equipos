@@ -1,29 +1,22 @@
-import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
 
-type Params = {
-  params: {
-    codigo: string
-  }
-}
-
-// GET /api/equipos/[codigo]/historial
-export async function GET(request: Request, { params }: Params) {
-  const { codigo } = params
-
+export async function GET(
+  request: Request,
+  { params }: { params: { codigo: string } }
+) {
   try {
     const historial = await prisma.trazabilidadUbicacion.findMany({
-      where: {
-        equipo_codigo: codigo,
-      },
-      orderBy: {
-        fecha_registro: 'desc', // Muestra los más recientes primero
-      },
-    })
+      where: { equipo_codigo: params.codigo },
+      orderBy: { fecha_registro: "desc" },
+    });
 
-    return NextResponse.json(historial)
+    return NextResponse.json(historial);
   } catch (error) {
-    console.error('Error al obtener historial:', error)
-    return NextResponse.json({ message: "Error al obtener historial" }, { status: 500 })
+    console.error("Error al obtener historial:", error);
+    return NextResponse.json(
+      { message: "Error al obtener historial" },
+      { status: 500 }
+    );
   }
 }

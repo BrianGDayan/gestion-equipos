@@ -9,6 +9,7 @@ export async function GET() {
         codigo: true,
         nombre_equipo: true,
         ubicacion_actual: true,
+        tipo_codigo: true
       }
     })
     return NextResponse.json(equipos)
