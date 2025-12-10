@@ -12,11 +12,16 @@ export async function GET() {
         nombre_equipo: true,
         ubicacion_actual: true,
         tipo_codigo: true
-      }
+      },
+      // Nuevo ordenamiento: primero por tipo_codigo, luego por codigo
+      orderBy: [
+        { tipo_codigo: 'asc' },
+        { codigo: 'asc' }
+      ]
     });
 
     return NextResponse.json(equipos);
-  } catch (error) {
+  } catch (error: any) { // Usamos 'any' para evitar el error de tipo en el catch
     console.error("Error fetching equipos:", error);
     return NextResponse.json({ message: "Error al obtener equipos" }, { status: 500 });
   }
