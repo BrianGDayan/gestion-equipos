@@ -3,10 +3,8 @@ import { NextResponse, NextRequest } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  // 1. Tipamos 'params' como Promise, forzando la compatibilidad con el build worker
   { params }: { params: Promise<{ codigo: string }> }
 ) {
-  // 2. Usamos await para resolver la Promise y obtener el objeto { codigo }
   const { codigo } = await params; 
 
   const data = await request.json();
@@ -46,6 +44,32 @@ export async function PATCH(
     }
     return NextResponse.json(
       { message: "Error interno al modificar la ubicación" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ codigo: string }> }
+) {
+  const { codigo } = await params;
+
+  try {
+    await prisma.equipo.delete({
+      where: { codigo },
+    });
+
+    return NextResponse.json({ message: "Equipo eliminado correctamente" });
+  } catch (error: any) {
+    if (error.code === "P2025") {
+      return NextResponse.json(
+        { message: "Equipo no encontrado" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json(
+      { message: "Error al eliminar el equipo" },
       { status: 500 }
     );
   }

@@ -26,27 +26,54 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { codigo, nombre_equipo, ubicacion_actual, tipo_codigo } = data;
+    const { codigo, nombre_equipo, ubicacion_actual } = data;
 
+    // 1. Lógica de extracción del tipo_codigo
+    const partes = codigo.split('-');
+    if (partes.length < 2) {
+      return NextResponse.json({ message: "El código de equipo debe tener el formato TIPO-ID (ej: G8-01)" }, { status: 400 });
+    }
+    const tipo_codigo_extraido = partes[0].toUpperCase();
+
+    // 2. Validación de existencia del Tipo en la BD
+    const tipoExiste = await prisma.tipo.findUnique({
+      where: { codigo: tipo_codigo_extraido },
+    });
+
+    if (!tipoExiste) {
+       return NextResponse.json({ 
+         message: `El código de tipo (${tipo_codigo_extraido}) no es válido o no existe en la tabla Tipo.`,
+         details: "Verifique que la primera parte del código (antes del guion) esté en la tabla Tipo."
+       }, { status: 400 });
+    }
+
+    // 3. Crear el nuevo equipo (usando el tipo extraído)
     const nuevoEquipo = await prisma.equipo.create({
       data: {
         codigo,
         nombre_equipo,
         ubicacion_actual,
-        tipo_codigo,
-      }
+        tipo_codigo: tipo_codigo_extraido, // Usamos el código validado
+      },
     });
 
+    // 4. Registrar la ubicación inicial en el historial
     await prisma.trazabilidadUbicacion.create({
       data: {
         equipo_codigo: nuevoEquipo.codigo,
         ubicacion: ubicacion_actual,
-      }
+      },
     });
 
     return NextResponse.json(nuevoEquipo, { status: 201 });
-  } catch (error) {
+  } catch (error: any) { // <-- Se define el tipo error como 'any'
     console.error("Error al crear equipo:", error);
+    
+    // Manejo de error de clave duplicada (Prisma P2002)
+    if (error.code === 'P2002') {
+        return NextResponse.json({ message: "El código de equipo ya existe." }, { status: 409 });
+    }
+    
     return NextResponse.json({ message: "Error al crear equipo" }, { status: 500 });
   }
 }

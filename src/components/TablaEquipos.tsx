@@ -6,15 +6,14 @@ interface Equipo {
   codigo: string;
   nombre_equipo: string;
   ubicacion_actual: string | null;
-  // tipo_codigo es requerido por la DB, se añade aquí para el GET
   tipo_codigo: string; 
 }
 
+// Interfaz simplificada: ya no necesita tipo_codigo, solo el código completo
 interface EstadoEquipoNuevo {
-  codigo: string;
+  codigo: string; 
   nombre_equipo: string;
   ubicacion_actual: string;
-  tipo_codigo: string; 
 }
 
 export default function TablaEquipos() {
@@ -22,11 +21,11 @@ export default function TablaEquipos() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Inicialización simplificada: sin tipo_codigo
   const [equipoNuevo, setEquipoNuevo] = useState<EstadoEquipoNuevo>({
     codigo: '',
     nombre_equipo: '',
     ubicacion_actual: '',
-    tipo_codigo: '',
   });
 
   const [codigoEnEdicion, setCodigoEnEdicion] = useState<string | null>(null);
@@ -57,14 +56,20 @@ export default function TablaEquipos() {
       const res = await fetch('/api/equipos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(equipoNuevo),
+        // Enviamos el objeto sin tipo_codigo, el backend lo extrae
+        body: JSON.stringify(equipoNuevo), 
       });
 
-      if (!res.ok) throw new Error('Error al crear equipo');
+      if (!res.ok) {
+        const errData = await res.json();
+        // Muestra el mensaje de error detallado del backend (ej: "Código de tipo no válido")
+        throw new Error(errData.message || 'Error al crear equipo');
+      }
       
       const equipoCreado = await res.json();
       setEquipos([...equipos, equipoCreado]); 
-      setEquipoNuevo({ codigo: '', nombre_equipo: '', ubicacion_actual: '', tipo_codigo: '' }); 
+      // Reset de estado simplificado
+      setEquipoNuevo({ codigo: '', nombre_equipo: '', ubicacion_actual: '' }); 
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -104,6 +109,22 @@ export default function TablaEquipos() {
     }
   };
 
+  const eliminarEquipo = async (codigo: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este equipo? Se borrará todo su historial.')) return;
+
+    try {
+      const res = await fetch(`/api/equipos/${codigo}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Error al eliminar equipo');
+
+      setEquipos(prev => prev.filter(eq => eq.codigo !== codigo));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="w-full">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-text mb-4 uppercase tracking-wide border-l-4 border-secondary pl-3">
@@ -132,18 +153,11 @@ export default function TablaEquipos() {
 
             <tr className="bg-gray-50 border-b-2 border-gray-200">
                <td className="p-2 border-r">
-                 {/* Input dividido: Usamos un small input para el Tipo Código */}
+                 {/* Input único para el código completo (ej: G8-01) */}
                  <input 
                    type="text" 
-                   placeholder="T-Cód (G1)"
-                   className="w-1/3 p-2 border border-gray-300 rounded focus:outline-none focus:border-primary mr-1 text-xs"
-                   value={equipoNuevo.tipo_codigo}
-                   onChange={(e) => setEquipoNuevo({...equipoNuevo, tipo_codigo: e.target.value})}
-                 />
-                 <input 
-                   type="text" 
-                   placeholder="Nuevo Cód."
-                   className="w-2/3 p-2 border border-gray-300 rounded focus:outline-none focus:border-primary"
+                   placeholder="Nuevo Código"
+                   className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-primary"
                    value={equipoNuevo.codigo}
                    onChange={(e) => setEquipoNuevo({...equipoNuevo, codigo: e.target.value})}
                  />
@@ -169,7 +183,7 @@ export default function TablaEquipos() {
                <td className="p-2 text-center">
                  <button 
                    onClick={crearEquipo}
-                   disabled={!equipoNuevo.codigo || !equipoNuevo.nombre_equipo || !equipoNuevo.tipo_codigo || isSaving}
+                   disabled={!equipoNuevo.codigo || !equipoNuevo.nombre_equipo || isSaving}
                    className="bg-secondary hover:bg-secondary-dark text-white font-bold py-1 px-4 rounded text-xs shadow disabled:opacity-50 transition-colors"
                  >
                    {isSaving ? '...' : 'AGREGAR'}
@@ -183,7 +197,7 @@ export default function TablaEquipos() {
               return (
                 <tr key={eq.codigo} className="border-b hover:bg-gray-50 transition-colors duration-150">
                   <td className="py-3 px-4 border-r font-medium text-gray-900">
-                    {eq.tipo_codigo} - {eq.codigo}
+                    {eq.codigo}
                   </td>
                   <td className="py-3 px-4 border-r">{eq.nombre_equipo}</td>
                   
@@ -201,29 +215,38 @@ export default function TablaEquipos() {
                     )}
                   </td>
 
-                  <td className="py-3 px-4 text-center space-x-2">
+                  <td className="py-3 px-4 text-center space-x-2 flex items-center justify-center">
                     {estaEditando ? (
                       <>
                         <button 
                           onClick={() => guardarUbicacion(eq.codigo)}
-                          className="text-green-600 hover:text-green-800 font-bold text-xs underline"
+                          className="text-white bg-secondary hover:bg-secondary-dark font-bold text-xs py-1 px-3 rounded shadow transition-colors"
                         >
                           Guardar
                         </button>
                         <button 
                           onClick={cancelarEdicion}
-                          className="text-red-500 hover:text-red-700 text-xs ml-2"
+                          className="text-gray-700 bg-gray-200 hover:bg-gray-300 text-xs py-1 px-3 rounded shadow ml-2 transition-colors"
                         >
                           Cancelar
                         </button>
                       </>
                     ) : (
-                      <button 
-                        onClick={() => iniciarEdicion(eq)}
-                        className="text-primary hover:text-primary-dark font-semibold text-xs border border-primary px-2 py-1 rounded hover:bg-primary hover:text-white transition-all"
-                      >
-                        Modificar Ubicación
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => iniciarEdicion(eq)}
+                          className="text-primary hover:text-white font-semibold text-xs border border-primary px-2 py-1 rounded hover:bg-primary transition-all"
+                        >
+                          Modificar
+                        </button>
+                        <button 
+                          onClick={() => eliminarEquipo(eq.codigo)}
+                          className="text-white bg-red-500 hover:bg-red-600 font-semibold text-xs px-2 py-1 rounded shadow ml-2 transition-colors"
+                          title="Eliminar equipo"
+                        >
+                          Eliminar
+                        </button>
+                      </>
                     )}
                   </td>
                 </tr>
