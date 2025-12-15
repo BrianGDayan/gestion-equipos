@@ -5,70 +5,71 @@ import { useRouter } from "next/navigation";
 import { login, LoginDto } from "@/lib/auth";
 import ModalError from "@/components/ModalError";
 
-export default function LoginPage() {
+export default function Login() {
   const router = useRouter();
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
   const [showError, setShowError] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
     const dto: LoginDto = { idUsuario: Number(usuario), clave };
 
     try {
       await login(dto);
-      // Redirigir al dashboard/home
-      router.push("/"); 
+      router.push("/");
     } catch (err) {
       setShowError(true);
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-bg">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md border border-gray-200">
-        <h1 className="text-2xl font-bold mb-6 text-center text-primary">Iniciar sesión</h1>
+    // py-20 para dar espacio arriba, igual que antes
+    <div className="container mx-auto flex justify-center py-24 px-4">
+      
+      {/* CAMBIO CLAVE: max-w-lg (512px) en lugar de max-w-md (448px) para que sea más ancho */}
+      <div className="w-full max-w-lg">
+        
+        {/* Título más grande y con más margen inferior (mb-10) */}
+        <h1 className="text-3xl font-semibold mb-10 text-center text-gray-text">
+          Iniciar sesión
+        </h1>
         
         <form className="flex flex-col" onSubmit={handleSubmit}>
-          <label className="text-sm font-semibold text-gray-text mb-1">ID Usuario</label>
           <input
-            type="number"
+            type="text"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
-            placeholder="Ingrese ID"
+            placeholder="ID Usuario"
             required
-            className="border border-gray-border p-2 mb-4 rounded focus:outline-none focus:border-primary"
+            // CAMBIOS: 
+            // - py-3 px-4: Más alto y con más espacio a los costados
+            // - text-lg: Letra más grande
+            // - bg-white: Asegurar fondo blanco
+            className="border border-gray-border py-3 px-4 mb-5 rounded shadow-sm focus:outline-none focus:border-primary font-sans text-lg text-gray-text bg-white placeholder-gray-400"
           />
           
-          <label className="text-sm font-semibold text-gray-text mb-1">Contraseña</label>
           <input
             type="password"
             value={clave}
             onChange={(e) => setClave(e.target.value)}
-            placeholder="********"
+            placeholder="Contraseña"
             required
-            className="border border-gray-border p-2 mb-6 rounded focus:outline-none focus:border-primary"
+            // Mismos cambios de tamaño aquí
+            className="border border-gray-border py-3 px-4 mb-8 rounded shadow-sm focus:outline-none focus:border-primary font-sans text-lg text-gray-text bg-white placeholder-gray-400"
           />
           
           <button 
             type="submit" 
-            disabled={loading}
-            className="w-full p-3 bg-primary hover:bg-primary-dark text-white font-bold rounded transition-colors disabled:opacity-50"
+            // Botón más alto (py-3) y letra un poco más grande
+            className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded shadow transition-colors font-sans text-lg"
           >
-            {loading ? "Ingresando..." : "INGRESAR"}
+            Ingresar
           </button>
         </form>
 
-        <ModalError 
-            show={showError} 
-            onClose={() => setShowError(false)} 
-            mensaje="Credenciales incorrectas o error de conexión." 
-        />
+        <ModalError show={showError} onClose={() => setShowError(false)} mensaje="Error al iniciar sesión." />
       </div>
     </div>
   );
