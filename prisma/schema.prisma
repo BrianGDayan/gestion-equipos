@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Usuario {
+  id_usuario        Int      @id @default(autoincrement())
+  clave             String   @db.VarChar(25)
+  rol               String   @default("admin")
+}
+
 model Equipo {
   codigo           String  @id @db.VarChar(10) 
   nombre_equipo    String  @db.VarChar(100)
