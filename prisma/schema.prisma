@@ -7,26 +7,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// --- ENUMS ---
+enum CategoriaEquipo {
+  MOTORIZADO
+  NO_MOTORIZADO
+  TRANSPORTE
+}
+
+// --- MODELOS PRINCIPALES ---
+
 model Usuario {
-  id_usuario        Int      @id @default(autoincrement())
-  clave             String   @db.VarChar(25)
-  rol               String   @default("admin")
+  id_usuario      Int           @id @default(autoincrement())
+  clave           String        @db.VarChar(25)
+  rol             String        @default("admin") 
+  nombre_completo String?       @db.VarChar(100)
+  
+  partes_creados  ParteDiario[]
 }
 
 model Equipo {
   codigo           String  @id @db.VarChar(10) 
   nombre_equipo    String  @db.VarChar(100)
   ubicacion_actual String? @db.VarChar(50)
+  
+  // Clasificación
   tipo_codigo      String  @db.VarChar(10)
-
   tipo             Tipo    @relation(fields: [tipo_codigo], references: [codigo])
+  
+  // Nuevos Atributos
+  categoria        CategoriaEquipo? 
+  marca            String?          @db.VarChar(50)
+  modelo           String?          @db.VarChar(50)
+  anio             Int?
+  numero_serie     String?          @db.VarChar(100) 
+  numero_chasis    String?          @db.VarChar(100)
+  dominio          String?          @db.VarChar(20)
+  factura          String?          @db.VarChar(100) // Campo opcional solicitado
+  
+  // Estado Operativo
+  // Nota: Eliminamos horas_totales y kilometraje bajo pedido.
+  // El horómetro actual será la única fuente de verdad del desgaste.
+  horometro_actual Decimal  @default(0) @db.Decimal(10, 2)
+  estado           String   @default("OPERATIVO") 
+
+  // Relaciones
   historial        TrazabilidadUbicacion[]
+  partes_diarios   ParteDiario[]
+  repuestos        Repuesto[]              
 }
 
 model Tipo {
   codigo     String   @id @db.VarChar(10)
   referencia String   @unique @db.VarChar(50)
-  
   equipos    Equipo[] 
 }
 
@@ -39,4 +71,56 @@ model TrazabilidadUbicacion {
   equipo         Equipo   @relation(fields: [equipo_codigo], references: [codigo], onDelete: Cascade)
 
   @@index([equipo_codigo])
+}
+
+// --- NUEVOS MODELOS ---
+
+model ParteDiario {
+  nro_parte      BigInt   @id 
+  
+  fecha_carga    DateTime @default(now()) @db.Timestamptz(6)
+  fecha_parte    DateTime @db.Date 
+  
+  // Relaciones
+  equipo_codigo  String   @db.VarChar(10)
+  equipo         Equipo   @relation(fields: [equipo_codigo], references: [codigo])
+  
+  id_usuario     Int
+  usuario        Usuario  @relation(fields: [id_usuario], references: [id_usuario])
+  
+  // Datos Operativos
+  obra_ubicacion String   @db.VarChar(150)
+  
+  // Mediciones
+  horometro_inicial Decimal? @db.Decimal(10, 2)
+  horometro_final   Decimal? @db.Decimal(10, 2)
+  horas_trabajadas  Decimal? @db.Decimal(10, 2) 
+  
+  // Insumos
+  combustible              Decimal? @db.Decimal(10, 2)
+  aceite_motor             Decimal? @db.Decimal(10, 2)
+  aceite_hidraulico        Decimal? @db.Decimal(10, 2)
+  grasa                    Decimal? @db.Decimal(10, 2)
+  
+  observaciones    String?  @db.Text
+  
+  // Se eliminó estado_parte
+
+  @@index([equipo_codigo])
+  @@index([fecha_parte])
+}
+
+model Repuesto {
+  id           Int      @id @default(autoincrement())
+  codigo       String   @unique @db.VarChar(50) 
+  nombre       String   @db.VarChar(100)        
+  tipo         String?  @db.VarChar(50)         // Solicitado: Tipo de repuesto
+  marca        String?  @db.VarChar(50)         
+  modelo       String?  @db.VarChar(50)         
+  
+  // Gestión de Stock
+  stock_actual Int      @default(0) // Cuántos hay en estantería
+  stock_minimo Int      @default(1) // Cuándo avisar que falta
+  
+  equipos      Equipo[] 
 }

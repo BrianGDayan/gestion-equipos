@@ -2,75 +2,104 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; // Importamos Image
 import { login, LoginDto } from "@/lib/auth";
-import ModalError from "@/components/ModalError";
+import { toast } from "sonner";
+import { Loader2, Lock, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default function Login() {
   const router = useRouter();
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
-  const [showError, setShowError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    setIsLoading(true);
     const dto: LoginDto = { idUsuario: Number(usuario), clave };
 
     try {
       await login(dto);
+      toast.success("Bienvenido", { description: "Acceso correcto al sistema." });
       router.push("/");
     } catch (err) {
-      setShowError(true);
+      toast.error("Error de acceso", { description: "Credenciales inválidas." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    // py-20 para dar espacio arriba, igual que antes
-    <div className="container mx-auto flex justify-center py-24 px-4">
-      
-      {/* CAMBIO CLAVE: max-w-lg (512px) en lugar de max-w-md (448px) para que sea más ancho */}
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen flex items-start justify-center pt-24 px-4 bg-gray-100">
+      <Card className="w-full max-w-lg shadow-xl border-0 animate-slide-up overflow-hidden">
         
-        {/* Título más grande y con más margen inferior (mb-10) */}
-        <h1 className="text-3xl font-semibold mb-10 text-center text-gray-text">
-          Iniciar sesión
-        </h1>
-        
-        <form className="flex flex-col" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-            placeholder="ID Usuario"
-            required
-            // CAMBIOS: 
-            // - py-3 px-4: Más alto y con más espacio a los costados
-            // - text-lg: Letra más grande
-            // - bg-white: Asegurar fondo blanco
-            className="border border-gray-border py-3 px-4 mb-5 rounded shadow-sm focus:outline-none focus:border-primary font-sans text-lg text-gray-text bg-white placeholder-gray-400"
-          />
-          
-          <input
-            type="password"
-            value={clave}
-            onChange={(e) => setClave(e.target.value)}
-            placeholder="Contraseña"
-            required
-            // Mismos cambios de tamaño aquí
-            className="border border-gray-border py-3 px-4 mb-8 rounded shadow-sm focus:outline-none focus:border-primary font-sans text-lg text-gray-text bg-white placeholder-gray-400"
-          />
-          
-          <button 
-            type="submit" 
-            // Botón más alto (py-3) y letra un poco más grande
-            className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded shadow transition-colors font-sans text-lg"
-          >
-            Ingresar
-          </button>
-        </form>
+        {/* Header Visual con Color Corporativo (Opcional, para dar más estilo) */}
+        <div className="h-2 bg-primary w-full"></div>
 
-        <ModalError show={showError} onClose={() => setShowError(false)} mensaje="Error al iniciar sesión." />
-      </div>
+        <CardHeader className="space-y-4 text-center pb-6 pt-10">
+          {/* LOGO DE LA EMPRESA AQUÍ */}
+          <div className="flex justify-center mb-4">
+            <Image 
+              src="/img/logo.png" 
+              alt="Logo Empresa" 
+              width={220} // Ajusta según tu logo real
+              height={80} 
+              className="h-auto w-auto object-contain"
+              priority
+            />
+          </div>
+          
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Bienvenido</h2>
+            <p className="text-muted-foreground">Ingrese sus credenciales para continuar</p>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pb-10 px-8">
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="text"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
+                  placeholder="ID Usuario"
+                  required
+                  disabled={isLoading}
+                  className="h-12 pl-12 text-lg bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="password"
+                  value={clave}
+                  onChange={(e) => setClave(e.target.value)}
+                  placeholder="Contraseña"
+                  required
+                  disabled={isLoading}
+                  className="h-12 pl-12 text-lg bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full h-12 text-lg font-bold shadow-md mt-4 transition-transform hover:scale-[1.01] bg-primary hover:bg-primary-dark"
+            >
+              {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "INGRESAR"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
