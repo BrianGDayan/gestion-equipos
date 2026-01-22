@@ -7,7 +7,9 @@ import {
   Truck, 
   MapPin, 
   LogOut,
-  Hammer
+  Hammer,
+  ClipboardCheck, 
+  Package
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -15,6 +17,8 @@ import { useRouter } from "next/navigation";
 const navigation = [
   { name: "Panel General", href: "/", icon: LayoutDashboard },
   { name: "Equipos", href: "/equipos", icon: Truck },
+  { name: "Partes Diarios", href: "/partes", icon: ClipboardCheck }, 
+  { name: "Inventario", href: "/repuestos", icon: Package },
   { name: "Historial", href: "/historial", icon: MapPin },
   { name: "Obras", href: "/obras", icon: Hammer },
 ];
@@ -30,17 +34,12 @@ export default function Sidebar() {
   };
 
   return (
-    // CAMBIO IMPORTANTE:
-    // - 'top-20': Empieza 80px (h-20) abajo para no tapar el Header.
-    // - 'h-[calc(100vh-5rem)]': Altura restante exacta.
-    // - 'z-40': Un nivel abajo del Header (z-50).
     <aside 
       className="fixed left-0 top-20 bottom-0 w-64 z-40 text-white transition-all duration-300 shadow-xl overflow-y-auto" 
       style={{ background: 'var(--gradient-sidebar)' }}
     >
       <div className="flex h-full flex-col py-4">
         
-        {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
@@ -49,13 +48,15 @@ export default function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 group relative",
+                  // CAMBIO: Agregamos 'border' aquí para que siempre tenga borde (aunque sea invisible)
+                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 group relative border",
                   isActive
-                    ? "bg-primary text-white shadow-glow" 
-                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                    // Activo: Borde visible y fondo
+                    ? "bg-white/10 text-white shadow-glow border-white/10" 
+                    // Inactivo: Borde transparente (evita el salto visual)
+                    : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
                 )}
               >
-                {/* Indicador activo lateral (detalle estético extra) */}
                 {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-blue-400 rounded-r-full" />}
                 
                 <item.icon className={cn("h-5 w-5 transition-colors", isActive ? "text-white" : "text-gray-500 group-hover:text-white")} />
@@ -65,7 +66,6 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Footer Sidebar */}
         <div className="px-3 pt-4 mt-auto border-t border-white/10">
            <button 
              onClick={handleLogout}
