@@ -48,10 +48,10 @@ interface Equipo {
   tipo_codigo: string;
   marca?: string;
   modelo?: string;
-  categoria?: string;
   horometro_actual?: number;
   tipo?: {
     referencia: string;
+    categoria: string; 
   };
 }
 
@@ -388,13 +388,13 @@ export default function TablaEquipos() {
                         </TableCell>
 
                         <TableCell>
-                          {eq.categoria && (
+                          {eq.tipo?.categoria && (
                             <Badge className={
-                              eq.categoria === 'MOTORIZADO' ? 'bg-orange-100 text-orange-700 hover:bg-orange-100' :
-                              eq.categoria === 'TRANSPORTE' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : 
+                              eq.tipo.categoria === 'MOTORIZADO' ? 'bg-orange-100 text-orange-700 hover:bg-orange-100' :
+                              eq.tipo.categoria === 'TRANSPORTE' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : 
                               'bg-slate-100 text-slate-700'
                             }>
-                              {eq.categoria.replace('_', ' ')}
+                              {eq.tipo.categoria.replace('_', ' ')}
                             </Badge>
                           )}
                         </TableCell>

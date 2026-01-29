@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // Importamos Image
+import Image from "next/image";
 import { login, LoginDto } from "@/lib/auth";
 import { toast } from "sonner";
 import { Loader2, Lock, User } from "lucide-react";

@@ -11,8 +11,14 @@ export async function GET(request: Request) {
   try {
     const equipos = await prisma.equipo.findMany({
       where: {
-        ...(categoria && categoria !== "TODAS" ? { categoria: categoria as any } : {}),
+        ...(categoria && categoria !== "TODAS" ? { 
+          tipo: { 
+            categoria: categoria as any 
+          } 
+        } : {}),
+        
         ...(tipo && tipo !== "TODOS" ? { tipo_codigo: tipo } : {}),
+        
         ...(search ? {
           OR: [
             { nombre_equipo: { contains: search, mode: 'insensitive' } },
@@ -25,7 +31,8 @@ export async function GET(request: Request) {
         tipo: true, 
       },
       orderBy: [
-        { tipo_codigo: 'asc' },
+        { tipo: { orden: 'asc' } },
+        
         { codigo: 'asc' }
       ]
     });

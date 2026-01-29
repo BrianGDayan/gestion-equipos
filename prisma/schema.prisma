@@ -34,8 +34,6 @@ model Equipo {
   tipo_codigo      String  @db.VarChar(10)
   tipo             Tipo    @relation(fields: [tipo_codigo], references: [codigo])
   
-  // Nuevos Atributos
-  categoria        CategoriaEquipo? 
   marca            String?          @db.VarChar(50)
   modelo           String?          @db.VarChar(50)
   anio             Int?
@@ -59,6 +57,8 @@ model Equipo {
 model Tipo {
   codigo     String   @id @db.VarChar(10)
   referencia String   @unique @db.VarChar(50)
+  categoria  CategoriaEquipo @default(NO_MOTORIZADO)
+  orden      Int             @default(0)
   equipos    Equipo[] 
 }
 

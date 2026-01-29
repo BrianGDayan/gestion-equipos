@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Tipo" ADD COLUMN     "orden" INTEGER NOT NULL DEFAULT 0;
