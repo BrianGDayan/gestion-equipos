@@ -46,6 +46,7 @@ model Equipo {
   // Nota: Eliminamos horas_totales y kilometraje bajo pedido.
   // El horómetro actual será la única fuente de verdad del desgaste.
   horometro_actual Decimal  @default(0) @db.Decimal(10, 2)
+  ultimo_servicio  Decimal  @default(0) @db.Decimal(10, 2)
   estado           String   @default("OPERATIVO") 
 
   // Relaciones
@@ -123,4 +124,10 @@ model Repuesto {
   stock_minimo Int      @default(1) // Cuándo avisar que falta
   
   equipos      Equipo[] 
+}
+
+model Obra {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique @db.VarChar(100)
+  estado String  @default("ACTIVA") @db.VarChar(20)
 }

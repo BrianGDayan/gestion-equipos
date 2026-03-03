@@ -18,6 +18,7 @@ import {
   Eraser,
   ChevronRight
 } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 // Componentes UI de Shadcn
@@ -437,11 +438,11 @@ export default function TablaEquipos() {
                             </div>
                           ) : (
                             <div className="flex justify-end items-center gap-1">
-                              {/* Botón de Ficha Técnica (Para Fase 2.5) */}
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ChevronRight className="h-5 w-5" />
-                              </Button>
-                              
+                              <Link href={`/equipos/${eq.codigo}`}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <ChevronRight className="h-5 w-5" />
+                                </Button>
+                              </Link>
                               <Button 
                                 size="icon" 
                                 variant="ghost" 

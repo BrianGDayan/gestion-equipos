@@ -15,10 +15,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface Obra {
+  id: number;
+  nombre: string;
+  estado: string;
+}
+
 export default function NuevoParte() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [equipos, setEquipos] = useState<any[]>([]);
+  
+  // NUEVO: Estado para almacenar y controlar la carga de obras
+  const [obras, setObras] = useState<Obra[]>([]);
+  const [isLoadingObras, setIsLoadingObras] = useState(true);
   
   const [formData, setFormData] = useState({
     nro_parte: '',
@@ -34,10 +44,25 @@ export default function NuevoParte() {
   });
 
   useEffect(() => {
-    fetch('/api/equipos').then(res => res.json()).then(data => setEquipos(data));
+    // Cargamos equipos y obras en paralelo
+    Promise.all([
+      fetch('/api/equipos').then(res => res.json()),
+      fetch('/api/obras').then(res => res.json())
+    ])
+    .then(([dataEquipos, dataObras]) => {
+      setEquipos(dataEquipos);
+      // Filtramos para mostrar solo las obras que están ACTIVAS
+      setObras(dataObras.filter((o: Obra) => o.estado === 'ACTIVA'));
+    })
+    .catch(err => {
+      console.error("Error cargando datos iniciales:", err);
+      toast.error("Error al cargar datos del sistema");
+    })
+    .finally(() => {
+      setIsLoadingObras(false);
+    });
   }, []);
 
-  // Manejador Genérico para Inputs y Textareas (Soluciona el error de TypeScript)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -48,7 +73,6 @@ export default function NuevoParte() {
     setFormData(prev => ({
       ...prev,
       equipo_codigo: codigo,
-      // Si existe el equipo, autocompletamos con sus datos actuales
       horometro_inicial: eq?.horometro_actual ? String(eq.horometro_actual) : '0',
       obra_ubicacion: eq?.ubicacion_actual || ''
     }));
@@ -136,17 +160,32 @@ export default function NuevoParte() {
               </Select>
             </div>
 
+            {/* NUEVO: Selector de Obras en lugar de Input de texto libre */}
             <div className="space-y-2">
               <Label htmlFor="obra_ubicacion" className="flex items-center gap-2">
                 <HardHat className="h-4 w-4" /> Obra / Ubicación Actual
               </Label>
-              <Input 
-                id="obra_ubicacion" name="obra_ubicacion"
-                required placeholder="Ej: Olaroz - Sales de Jujuy"
-                value={formData.obra_ubicacion}
-                onChange={handleChange}
-                className="h-12"
-              />
+              <Select 
+                required
+                disabled={isLoadingObras}
+                value={formData.obra_ubicacion} 
+                onValueChange={(val) => setFormData({ ...formData, obra_ubicacion: val })}
+              >
+                <SelectTrigger className="h-12 bg-white border-slate-200">
+                  <SelectValue placeholder={isLoadingObras ? "Cargando obras..." : "Seleccionar obra..."} />
+                </SelectTrigger>
+                <SelectContent>
+                  {obras.length === 0 ? (
+                    <div className="p-2 text-sm text-slate-500 text-center">No hay obras activas</div>
+                  ) : (
+                    obras.map((obra) => (
+                      <SelectItem key={obra.id} value={obra.nombre}>
+                        {obra.nombre}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* 3. Horómetros */}
