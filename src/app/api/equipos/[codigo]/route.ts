@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
 
-// GET: Obtiene el detalle completo para la Ficha Técnica (Fase 2)
+// ESTA ES LA MAGIA: Le enseñamos a JS a convertir BigInt a String globalmente
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
+// GET: Obtiene el detalle completo para la Ficha Técnica
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ codigo: string }> }
@@ -61,7 +66,7 @@ export async function PATCH(
       }),
       prisma.trazabilidadUbicacion.create({
         data: {
-          equipo_codigo: codigo,
+          equipo: { connect: { codigo } },
           ubicacion: nuevaUbicacion,
         },
       }),
